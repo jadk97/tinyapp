@@ -14,6 +14,10 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+
+};
+
 function generateRandomString() {
   let result = "";
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -30,7 +34,7 @@ app.get("/", (req, res) => {
 });
 app.get("/urls", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies["user_id"]],
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
@@ -38,7 +42,7 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies["user_id"]],
     urls: urlDatabase
   };
   res.render("urls_new", templateVars);
@@ -59,9 +63,11 @@ app.post("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   // console.log(urlDatabase);
-  let templateVars = { username: req.cookies["username"], 
-  shortURL: req.params.shortURL, 
-  longURL: urlDatabase[req.params.shortURL] };
+  let templateVars = {
+    user: users[req.cookies["user_id"]],
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL]
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -84,16 +90,38 @@ app.post("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  console.log(req.body.username);
-  res.cookie('username', req.body.username);
+  // console.log(req.body.user_id);
+  res.cookie('user_id', req.body.user_id);
   //res.cookie("username", req.body.username);
- //console.log(req.cookies);
+  //console.log(req.cookies);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
+});
+app.get("/register", (req, res) => {
+  let templateVars = {
+    user: users[req.cookies["user_id"]],
+    urls: urlDatabase
+  };
+  res.render("url_registration", templateVars);
+});
+
+app.post("/register", (req, res) => {
+
+  if(Object.values(users).indexOf(req.body.email) > - 1){
+    res.status(400).send("400 Bad Request Error")
+  }
+  else {
+  let userID = generateRandomString();
+  users[userID] = { id: userID, email: req.body.email, password: req.body.password };
+  // console.log(users);
+  res.cookie("user_id", userID);
+  console.log(users);
+  res.redirect("/urls");
+  }
 });
 
 app.get("/urls.json", (req, res) => {
