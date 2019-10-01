@@ -37,7 +37,11 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
+  res.render("urls_new", templateVars);
 })
 
 app.post("/urls", (req, res) => {
@@ -84,6 +88,11 @@ app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   //res.cookie("username", req.body.username);
  //console.log(req.cookies);
+  res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
   res.redirect("/urls");
 });
 
