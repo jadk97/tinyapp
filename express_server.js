@@ -15,7 +15,16 @@ const urlDatabase = {
 };
 
 const users = {
-
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
 };
 
 function generateRandomString() {
@@ -88,19 +97,40 @@ app.post("/urls/:shortURL", (req, res) => {
   // delete urlDatabase[req.params.id];
   res.redirect(`/urls/${req.params.shortURL}`);
 });
+app.get("/login", (req, res) => {
+  let templateVars = {
+    user: users[req.cookies["user_id"]],
+    urls: urlDatabase
+  };
+  res.render("url_login", templateVars);
+});
 
 app.post("/login", (req, res) => {
-  // console.log(req.body.user_id);
-  res.cookie('user_id', req.body.user_id);
-  //res.cookie("username", req.body.username);
-  //console.log(req.cookies);
-  res.redirect("/urls");
+  // console.log(req.body.email);
+  // console.log(req.body.password);  
+  let userFound;
+  for (let user in users){
+    if(users[user]["email"] === req.body.email){
+      if(users[user]["password"] === req.body.password){
+        userFound = users[user];
+        break;
+      }
+    }
+  }
+  if (userFound === undefined){
+    res.status(403).send("403 Bad Request");
+  }
+  else{
+    res.cookie("user_id", userFound.id);
+    res.redirect("/urls");
+  }
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
 });
+
 app.get("/register", (req, res) => {
   let templateVars = {
     user: users[req.cookies["user_id"]],
@@ -110,17 +140,29 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-
-  if(Object.values(users).indexOf(req.body.email) > - 1){
-    res.status(400).send("400 Bad Request Error")
+  let loginError = false;
+  for(let user in users){
+    if(users[user]["email"] === req.body.email){
+      loginError = true;
+    }
+    else{
+      loginError = false;
+    }
   }
-  else {
+  
+  // if(Object.values(users).indexOf(req.body.email) > - 1){
+  //   res.status(400).send("400 Bad Request Error");
+  // }
+  if (!loginError){
   let userID = generateRandomString();
   users[userID] = { id: userID, email: req.body.email, password: req.body.password };
   // console.log(users);
   res.cookie("user_id", userID);
   console.log(users);
   res.redirect("/urls");
+  }
+  else{
+    res.status(400).send("400 Bad Request");
   }
 });
 
