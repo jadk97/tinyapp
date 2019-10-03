@@ -1,6 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-
 const { getUserByEmail } = require("./helpers.js");
 const bcrypt = require("bcrypt");
 const cookieSession = require('cookie-session');
@@ -139,7 +138,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:shortURL", (req, res) => {
   if (users[req.session.user_id] !== undefined) {
     urlDatabase[req.params.shortURL] = { longURL: req.body.longURL, userID: req.session.user_id };
-    res.redirect("/urls")
+    res.redirect("/urls");
   }
 });
 
