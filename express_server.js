@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 // const cookieParser = require('cookie-parser');
+const { getUserByEmail } = require("./helpers.js");
 const bcrypt = require("bcrypt");
 const cookieSession = require('cookie-session');
 const app = express();
@@ -21,6 +22,7 @@ const urlDatabase = {
 };
 
 const users = {
+
 };
 
 function generateRandomString() {
@@ -42,13 +44,30 @@ function urlsForUser(id) {
   return filteredURLs;
 };
 
+// for (let user in users) {
+//   if (users[user]["email"] === req.body.email) {
+//     // if (users[user]["password"] === req.body.password) {
+//       if(bcrypt.compareSync(req.body.password, users[user]["password"])){
+//       userFound = users[user];
+//       break;
+//     }
+//   }
+// }
+
+// const getUserByEmail = function (email, database) {
+//   for (let user in database) {
+//     if (database[user]["email"] === email) {
+//       return database[user];
+//     }
+//   }
+// };
 
 
 
 
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  res.redirect("/urls");
 });
 app.get("/urls", (req, res) => {
   // console.log(urlsForUser(req.cookies["user_id"]);
@@ -138,24 +157,32 @@ app.get("/login", (req, res) => {
   res.render("url_login", templateVars);
 });
 
-app.post("/login", (req, res) => { 
-  let userFound;
-  for (let user in users) {
-    if (users[user]["email"] === req.body.email) {
-      // if (users[user]["password"] === req.body.password) {
-        if(bcrypt.compareSync(req.body.password, users[user]["password"])){
-        userFound = users[user];
-        break;
-      }
-    }
-  }
+app.post("/login", (req, res) => {
+  // let userFound = getUserByEmail(req.body.email, users);
+  // for (let user in users) {
+  //   if (users[user]["email"] === req.body.email) {
+  //     // if (users[user]["password"] === req.body.password) {
+  //       if(bcrypt.compareSync(req.body.password, users[user]["password"])){
+  //       userFound = users[user];
+  //       break;
+  //     }
+  //   }
+  // }
+  let userFound = getUserByEmail(req.body.email, users);
+  // console.log(userFound);
   if (userFound === undefined) {
-    res.status(403).send("403 Bad Request");
+    res.status(403).send("403 Bad Request. No email found under that username");
   }
   else {
+    // console.log(userFound);
+    if(bcrypt.compareSync(req.body.password, userFound.password)){
     // res.cookie("user_id", userFound.id);
     req.session.user_id = userFound.id;
     res.redirect("/urls");
+    }
+    else{
+      res.status(403).send("403 Bad Request. Incorrect password.");
+    }
   }
 });
 
@@ -175,23 +202,24 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  let loginError = false;
-  for (let user in users) {
-    if (users[user]["email"] === req.body.email) {
-      loginError = true;
-    }
-    else {
-      loginError = false;
-    }
-  }
-  if (!loginError) {
+  // let loginError = false;
+  // for (let user in users) {
+  //   if (users[user]["email"] === req.body.email) {
+  //     loginError = true;
+  //   }
+  //   else {
+  //     loginError = false;
+  //   }
+  // }
+  let userFound = getUserByEmail(req.body.email, users);
+  if (userFound === undefined) {
     let userID = generateRandomString();
     const hashedPassword = bcrypt.hashSync(req.body.password, 10);
     users[userID] = { id: userID, email: req.body.email, password: hashedPassword };
     // console.log(users);
     // res.cookie("user_id", userID);
     req.session.user_id = userID;
-    console.log(users);
+    // console.log(userFound);
     res.redirect("/urls");
   }
   else {
