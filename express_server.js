@@ -97,7 +97,7 @@ app.post("/urls", (req, res) => {
 //if the user attempts to access the submission/edit page without being logged in, they're redirected to the index page
 app.get("/urls/:shortURL", (req, res) => {
   let userCookie = users[req.session.user_id];
-  if (userCookie !== undefined) {
+  if (userCookie !== undefined && urlDatabase[req.params.shortURL] !== undefined) {
     let templateVars = {
       user: userCookie,
       shortURL: req.params.shortURL,
