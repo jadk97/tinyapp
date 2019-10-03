@@ -45,9 +45,6 @@ function urlsForUser(id) {
 };
 
 
-
-
-
 //HOME PAGE
 //redirects to the url index page by default
 app.get("/", (req, res) => {
